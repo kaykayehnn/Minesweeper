@@ -44,9 +44,9 @@
   <ItemGroup>
     <Compile Include="Mine.cs" />
     <Compile Include="Minefield.cs" />
+    <Compile Include="Square.cs" />
     <Compile Include="Startup.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Utilities.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
