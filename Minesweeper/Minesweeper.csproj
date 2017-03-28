@@ -42,7 +42,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Mine.cs" />
+    <Compile Include="Position.cs" />
     <Compile Include="Minefield.cs" />
     <Compile Include="Square.cs" />
     <Compile Include="Startup.cs" />
