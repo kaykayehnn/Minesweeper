@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 
 public class Minefield
 {
-    public Square[,] FieldLayout { get; set; }
+    public Square[,] FieldLayout { get; set; } // [col,row]
     public int FieldLength { get; set; }
     public Position[] MinePositions { get; set; }
     public int MineCount { get; set; }
@@ -45,68 +44,95 @@ public class Minefield
     private static Square[,] InitMatrix(int fieldLength, Position[] minePositions)
     {
         Square[,] matrix = new Square[fieldLength, fieldLength];
+        for (int i = 0; i < fieldLength; i++)
+        {
+            for (int j = 0; j < fieldLength; j++)
+            {
+                matrix[i, j] = new Square(false);
+            }
+        }
+
         foreach (var mine in minePositions)
         {
-            matrix[mine.Column, mine.Row] = new Square(mine.Row, mine.Column, true);
+            matrix[mine.Column, mine.Row].IsBomb = true;
         }
 
         for (int i = 0; i < fieldLength; i++)
         {
-            //Square square = new Square(i, j, false);
-            //if (square == null)
-            //{
-            //    square = new Square();
-            //}
-            //var positionsAround = square.PositionsAround;
-            //var validPositions = new List<Position>();
-            //for (int j = 0; j < 8; j++)//default positions around
-            //{
-            //    var currentPosition = positionsAround[j];
-            //    if (Position.IsValid(currentPosition, fieldLength))
-            //    {
-            //        validPositions.Add(currentPosition);
-            //        if (minePositions.Contains(currentPosition))
-            //        {
-
-            //        }
-            //    }
-            //}
-            //square.PositionsAround = validPositions.ToArray();
+            for (int j = 0; j < fieldLength; j++)
+            {
+                if (matrix[i, j].IsBomb)
+                {
+                    AddBombToAdjacent(matrix, j, i);
+                }
+            }
         }
         return matrix;
     }
 
-public void PreviewMinefield(bool showMines = false)
-{
-    int sideLength = this.FieldLength;
-    int lastIndex = sideLength + 2;
-    char[][] matrix = new char[sideLength + 1][];//one more line for indexing at top
-    matrix[0] = new char[lastIndex];
-    for (int i = 2; i < lastIndex; i++)// indexing at top, starts at two because of side indexing
+    private static void AddBombToAdjacent(Square[,] matrix, int row, int col)
     {
-        matrix[0][i] = (char)(i + 46);
+        int fieldLength = matrix.GetLength(0);
+        if (col != 0)
+        {
+            matrix[col - 1, row].MinesNearby++;
+            if (row != 0)
+            {
+                matrix[col - 1, row - 1].MinesNearby++;
+                matrix[col, row - 1].MinesNearby++;
+            }
+            if (row != fieldLength - 1)
+            {
+                matrix[col - 1, row + 1].MinesNearby++;
+                matrix[col, row + 1].MinesNearby++;
+            }
+        }
+        if (col != fieldLength - 1)
+        {
+            matrix[col + 1, row].MinesNearby++;
+            if (row != 0)
+            {
+                matrix[col + 1, row - 1].MinesNearby++;
+            }
+            if (row != fieldLength - 1)
+            {
+                matrix[col + 1, row + 1].MinesNearby++;
+            }
+        }
     }
 
-    for (int i = 1; i < sideLength; i++)
+    public void PreviewMinefield(bool showMines = false)
     {
-        matrix[i] = new char[lastIndex];
-        matrix[i][0] = (char)(i + 47);//indexing on the left
-        matrix[i][1] = ' ';
-        //for (int j = 2; j < lastIndex; j++)
-        //{
-        //    char currentSquare = '-';
-        //    if (showMines && this.MinePositions[i - 1, j - 2])
-        //    {
-        //        currentSquare = 'o';
-        //    }
+        int sideLength = this.FieldLength;
+        int lastIndex = sideLength + 2;
+        char[][] matrix = new char[sideLength + 1][];//one more line for indexing at top
+        matrix[0] = new char[lastIndex];
+        for (int i = 2; i < lastIndex; i++)// indexing at top, starts at two because of side indexing
+        {
+            matrix[0][i] = (char)(i + 46);
+        }
 
-        //    matrix[i][j] = currentSquare;
-        //}
-    }
+        for (int i = 1; i < sideLength + 1; i++)
+        {
+            matrix[i] = new char[lastIndex];
+            matrix[i][0] = (char)(i + 47);//indexing on the left
+            matrix[i][1] = ' ';
 
-    foreach (char[] item in matrix)
-    {
-        Console.WriteLine(new string(item));
+            for (int j = 2; j < lastIndex; j++)
+            {
+                char currentSquare = '-';
+                if (showMines && this.FieldLayout[i - 1, j - 2].IsBomb)
+                {
+                    currentSquare = 'o';
+                }
+
+                matrix[i][j] = currentSquare;
+            }
+        }
+
+        foreach (char[] item in matrix)
+        {
+            Console.WriteLine(new string(item));
+        }
     }
-}
 }
