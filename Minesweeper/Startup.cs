@@ -4,8 +4,8 @@ public class Startup
 {
     public static void Main(string[] args)
     {
-        const int fieldDimension = 9;
-        const int mineCount = 10;
+        const int fieldDimension = 4;
+        const int mineCount = 2;
 
         //StartView();
 
@@ -16,27 +16,53 @@ public class Startup
             board.Preview(true); // should be false
 
             string[] userInput = Console.ReadLine().Split();
-            string command = userInput[0].Trim();
 
-            bool invalidCoords = !int.TryParse(userInput[1].Trim(), out int row);// returns true if success
-            invalidCoords |= !int.TryParse(userInput[2].Trim(), out int col);
-            bool invalidInput = !(command.Equals("open") || command.Equals("flag"));
-            invalidInput |= invalidCoords;
-            if (invalidInput)
+
+            bool validInput = ValidateInput(userInput);
+            if (validInput)
+            {
+                string command = userInput[0].Trim();
+                int row = int.Parse(userInput[1]);
+                int col = int.Parse(userInput[2]);
+                board.AggregateCommand(command, row, col);
+            }
+            else
             {
                 Console.WriteLine("Please enter valid command.");
                 continue;
             }
-            board.AggregateCommand(command, row, col);
         }
+        board.DetermineOutcome();
+        Delay(2000);
+        Console.Clear();
+        if (board.UserWon)
+        {
+            Console.WriteLine("Congratulations! Thanks for playing.");
+        }
+        else
+        {
+            Console.WriteLine("Unlucky!");
+        }
+    }
+
+    private static bool ValidateInput(string[] userInput)
+    {
+        if (userInput.Length != 3)
+        {
+            return false;
+        }
+
+        string command = userInput[0];
+        bool invalidCoords = !int.TryParse(userInput[1].Trim(), out int row) || !int.TryParse(userInput[2].Trim(), out int col);// returns true if success
+        bool validInput = (command.Equals("open") || command.Equals("flag")) ^ invalidCoords;
+
+        return validInput;
     }
 
     private static void StartView()
     {
         //Console.Clear();
         //PrintGreeting();
-        //Delay(2000);
-        //PrintRules();
         //Delay(2000);
         PrintControls();
         Delay(2000);
@@ -55,20 +81,7 @@ public class Startup
     {
         Console.WriteLine("Welcome to Minesweeper.");
     }
-
-    private static void PrintRules()
-    {
-        Console.WriteLine("The rules are simple:");
-        Delay(1000);
-        Console.WriteLine("Kill or be killed.");
-        Delay(1000);
-        Console.WriteLine("Understood?");
-        if (Console.Read() != 'y')
-        {
-            Console.WriteLine("Too bad.");
-        }
-    }
-
+    
     private static void Delay(int millis)
     {
         System.Threading.Thread.Sleep(millis);

@@ -7,13 +7,15 @@ public class Minefield
     public int FieldLength { get; set; }
     public int MineCount { get; set; }
     public bool GameFinished { get; set; }
+    public int FieldsCovered { get; set; }
+    public bool UserWon { get; set; }
 
     public Minefield(int fieldLength, int mineCount)
     {
         this.FieldLength = fieldLength;
         this.MineCount = mineCount;
         this.FieldLayout = GenerateLayout(this.FieldLength, this.MineCount);
-        this.GameFinished = false;
+        this.FieldsCovered = fieldLength * fieldLength; // bools are false by default
     }
 
     private Square[,] GenerateLayout(int fieldLength, int mineCount)
@@ -66,7 +68,7 @@ public class Minefield
         }
 
         return minePositions;
-    }
+    } // needs improvement, last lines rarely get mines
 
     private void AddBombToAdjacent(Square[,] mineField, int row, int col)
     {
@@ -77,21 +79,25 @@ public class Minefield
         }
     }
 
-    public void AggregateCommand(string command, int row, int col)
+    private void RecursiveUncover(Square currSquare)
     {
-        if (command.Equals("open"))
+        if (currSquare.MinesNearby != 0)
         {
-            if (this.FieldLayout[row,col].IsMine)
+            return;
+        }
+        var positions = currSquare.AdjacentPositions;
+        foreach (var position in positions)
+        {
+            var nextSquare = this.FieldLayout[position.Row, position.Column];
+            if (nextSquare.IsHidden == true)// to prevent stack overflow
             {
-                this.GameFinished = true;
+                nextSquare.IsHidden = false;
+                this.FieldsCovered--;
+                RecursiveUncover(nextSquare);
             }
         }
-        else if (command.Equals("flag"))
-        {
-            this.FieldLayout[row, col].IsFlagged ^= true; // change value
-        }
     }
-    
+
     private bool IsMine(int row, int col)
     {
         return this.FieldLayout[row, col].IsMine;
@@ -116,17 +122,22 @@ public class Minefield
 
             for (int j = 2; j < lastIndex; j++)
             {
-                char currentSquare = '-';
-                if (showMines && this.FieldLayout[i - 1, j - 2].IsMine)
+                char currentChar = '-';
+                var currentSquare = this.FieldLayout[i - 1, j - 2];
+                if (showMines && currentSquare.IsMine)
                 {
-                    currentSquare = 'o';
+                    currentChar = 'o';
                 }
-                else if (this.FieldLayout[i-1,j-2].IsFlagged)
+                else if (!currentSquare.IsHidden)
                 {
-                    currentSquare = 'f';
+                    currentChar = (char)(currentSquare.MinesNearby + 48); // to ascii number
+                }
+                else if (currentSquare.IsFlagged)
+                {
+                    currentChar = 'f';
                 }
 
-                mineField[i][j] = currentSquare;
+                mineField[i][j] = currentChar;
             }
         }
 
@@ -135,4 +146,40 @@ public class Minefield
             Console.WriteLine(new string(item));
         }
     }
+
+    public void AggregateCommand(string command, int row, int col)
+    {
+        var currSquare = this.FieldLayout[row, col];
+        if (command.Equals("open"))
+        {
+            if (currSquare.IsMine)
+            {
+                this.GameFinished = true;
+            }
+            else if (currSquare.MinesNearby == 0)
+            {
+                RecursiveUncover(currSquare);
+            }
+            else // more than 1 mine nearby
+            {
+                this.FieldLayout[row, col].IsHidden = false;
+                this.FieldsCovered--;
+            }
+        }
+        else if (command.Equals("flag"))
+        {
+            currSquare.IsFlagged ^= true; // change value
+        }
+
+        if (this.FieldsCovered == this.MineCount)
+        {
+            this.GameFinished = true;
+        }
+    }
+
+    public void DetermineOutcome()
+    {
+        this.UserWon = FieldsCovered == MineCount;
+    }
+    
 }

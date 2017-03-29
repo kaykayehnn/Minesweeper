@@ -3,7 +3,7 @@
 public class Square
 {
     public bool IsMine { get; set; }
-    public bool IsUncovered { get; set; }
+    public bool IsHidden { get; set; }
     public int MinesNearby { get; set; }
     public Position[] AdjacentPositions { get; set; }
     public bool IsFlagged { get; set; }
@@ -11,7 +11,7 @@ public class Square
     public Square(int row, int col, bool isBomb)
     {
         this.IsMine = isBomb;
-        this.IsUncovered = false;
+        this.IsHidden = true;
         this.MinesNearby = 0;
         this.AdjacentPositions = GetAdjacentPositions(row, col);
         this.IsFlagged = false;
