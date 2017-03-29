@@ -1,6 +1,4 @@
-﻿using System;
-
-public class Position
+﻿public class Position
 {
     public int Row { get; set; }
     public int Column { get; set; }
@@ -11,10 +9,10 @@ public class Position
         this.Column = col;
     }
 
-    internal static bool IsValid(Position position, int fieldLength)
+    public bool IsValid(int fieldLength)
     {
-        bool isValid = position.Row > 0 && position.Row < fieldLength
-                    && position.Column > 0 && position.Column < fieldLength;
+        bool isValid = this.Row >= 0 && this.Row < fieldLength
+                    && this.Column >= 0 && this.Column < fieldLength;
         return isValid;
     }
 }
