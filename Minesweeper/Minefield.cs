@@ -5,17 +5,45 @@ public class Minefield
 {
     public Square[,] FieldLayout { get; set; } // [col,row]
     public int FieldLength { get; set; }
-    public Position[] MinePositions { get; set; }
     public int MineCount { get; set; }
+    public bool GameFinished { get; set; }
 
     public Minefield(int fieldLength, int mineCount)
     {
         this.FieldLength = fieldLength;
         this.MineCount = mineCount;
-        this.FieldLayout = Minefield.GenerateLayout(fieldLength, mineCount);
+        this.FieldLayout = GenerateLayout(this.FieldLength, this.MineCount);
+        this.GameFinished = false;
     }
 
-    private static Position[] RandomiseMinePositions(int fieldLength, int mineCount)
+    private Square[,] GenerateLayout(int fieldLength, int mineCount)
+    {
+        Square[,] mineField = new Square[fieldLength, fieldLength];
+        Position[] minePositions = RandomiseMinePositions(fieldLength, mineCount);
+        for (int i = 0; i < fieldLength; i++)
+        {
+            for (int j = 0; j < fieldLength; j++)
+            {
+                mineField[i, j] = new Square(i, j, false);
+            }
+        }
+
+        foreach (var sqr in mineField)
+        {
+            var positions = sqr.AdjacentPositions;
+            sqr.AdjacentPositions = sqr.RemoveInvalidPositions(fieldLength);
+        }
+
+        foreach (var mine in minePositions)// add mines to field
+        {
+            mineField[mine.Row, mine.Column].IsMine = true;
+            AddBombToAdjacent(mineField, mine.Row, mine.Column);
+        }
+
+        return mineField;
+    }
+
+    private Position[] RandomiseMinePositions(int fieldLength, int mineCount)
     {
         Random r = new Random();
         int minesPositioned = 0;
@@ -40,34 +68,7 @@ public class Minefield
         return minePositions;
     }
 
-    private static Square[,] GenerateLayout(int fieldLength, int mineCount)
-    {
-        Square[,] mineField = new Square[fieldLength, fieldLength];
-        Position[] minePositions = RandomiseMinePositions(fieldLength, mineCount);
-        for (int i = 0; i < fieldLength; i++)
-        {
-            for (int j = 0; j < fieldLength; j++)
-            {
-                mineField[i, j] = new Square(i, j, false);
-            }
-        }
-
-        foreach (var sqr in mineField)
-        {
-            var positions = sqr.AdjacentPositions;
-            sqr.AdjacentPositions = Minefield.RemoveInvalidPositions(positions, fieldLength);
-        }
-
-        foreach (var mine in minePositions)// add mines to field
-        {
-            mineField[mine.Row, mine.Column].IsBomb = true;
-            AddBombToAdjacent(mineField, mine.Row, mine.Column);
-        }
-
-        return mineField;
-    }
-
-    private static void AddBombToAdjacent(Square[,] mineField, int row, int col)
+    private void AddBombToAdjacent(Square[,] mineField, int row, int col)
     {
         var adjacentPositions = mineField[row, col].AdjacentPositions;
         foreach (var position in adjacentPositions)
@@ -76,22 +77,27 @@ public class Minefield
         }
     }
 
-    private static Position[] RemoveInvalidPositions(Position[] adjacentPositions, int fieldLength)
+    public void AggregateCommand(string command, int row, int col)
     {
-        List<Position> validPositions = new List<Position>();
-        foreach (var position in adjacentPositions)
+        if (command.Equals("open"))
         {
-            if (position.IsValid(fieldLength))
+            if (this.FieldLayout[row,col].IsMine)
             {
-                validPositions.Add(position);
+                this.GameFinished = true;
             }
         }
-
-        var validPosArray = validPositions.ToArray();
-        return validPosArray;
+        else if (command.Equals("flag"))
+        {
+            this.FieldLayout[row, col].IsFlagged ^= true; // change value
+        }
+    }
+    
+    private bool IsMine(int row, int col)
+    {
+        return this.FieldLayout[row, col].IsMine;
     }
 
-    public void PreviewMinefield(bool showMines = false)
+    public void Preview(bool showMines = false)
     {
         int sideLength = this.FieldLength;
         int lastIndex = sideLength + 2;
@@ -111,9 +117,13 @@ public class Minefield
             for (int j = 2; j < lastIndex; j++)
             {
                 char currentSquare = '-';
-                if (showMines && this.FieldLayout[i - 1, j - 2].IsBomb)
+                if (showMines && this.FieldLayout[i - 1, j - 2].IsMine)
                 {
                     currentSquare = 'o';
+                }
+                else if (this.FieldLayout[i-1,j-2].IsFlagged)
+                {
+                    currentSquare = 'f';
                 }
 
                 mineField[i][j] = currentSquare;

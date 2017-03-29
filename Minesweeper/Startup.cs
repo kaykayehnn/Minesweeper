@@ -4,26 +4,42 @@ public class Startup
 {
     public static void Main(string[] args)
     {
-        const int fieldDimension = 10;
+        const int fieldDimension = 9;
         const int mineCount = 10;
 
-        StartView();
+        //StartView();
 
-        Minefield m = new Minefield(fieldDimension, mineCount);
-        m.PreviewMinefield(true);
-        Console.ReadKey();
+        Minefield board = new Minefield(fieldDimension, mineCount);
+        while (!board.GameFinished)
+        {
+            Console.Clear();
+            board.Preview(true); // should be false
+
+            string[] userInput = Console.ReadLine().Split();
+            string command = userInput[0].Trim();
+
+            bool invalidCoords = !int.TryParse(userInput[1].Trim(), out int row);// returns true if success
+            invalidCoords |= !int.TryParse(userInput[2].Trim(), out int col);
+            bool invalidInput = !(command.Equals("open") || command.Equals("flag"));
+            invalidInput |= invalidCoords;
+            if (invalidInput)
+            {
+                Console.WriteLine("Please enter valid command.");
+                continue;
+            }
+            board.AggregateCommand(command, row, col);
+        }
     }
 
     private static void StartView()
     {
-        Console.Clear();
-        PrintGreeting();
-        Delay(2000);
-        PrintRules();
-        Delay(2000);
+        //Console.Clear();
+        //PrintGreeting();
+        //Delay(2000);
+        //PrintRules();
+        //Delay(2000);
         PrintControls();
         Delay(2000);
-        Console.Clear();
     }
 
     private static void PrintControls()
@@ -47,7 +63,7 @@ public class Startup
         Console.WriteLine("Kill or be killed.");
         Delay(1000);
         Console.WriteLine("Understood?");
-        if(Console.Read() != 'y')
+        if (Console.Read() != 'y')
         {
             Console.WriteLine("Too bad.");
         }
@@ -55,8 +71,6 @@ public class Startup
 
     private static void Delay(int millis)
     {
-        var startTime = DateTime.Now;
-        var endTime = startTime.AddMilliseconds(millis);
-        while (startTime < endTime) startTime = DateTime.Now;        
+        System.Threading.Thread.Sleep(millis);
     }
 }
