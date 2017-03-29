@@ -4,19 +4,18 @@ public class Startup
 {
     public static void Main(string[] args)
     {
-        const int fieldDimension = 4;
-        const int mineCount = 2;
+        const int fieldDimension = 5;
+        const int mineCount = 5;
 
-        //StartView();
+        StartView();
 
         Minefield board = new Minefield(fieldDimension, mineCount);
         while (!board.GameFinished)
         {
             Console.Clear();
-            board.Preview(true); // should be false
+            board.Preview(false); // should be false
 
             string[] userInput = Console.ReadLine().Split();
-
 
             bool validInput = ValidateInput(userInput);
             if (validInput)
@@ -24,7 +23,7 @@ public class Startup
                 string command = userInput[0].Trim();
                 int row = int.Parse(userInput[1]);
                 int col = int.Parse(userInput[2]);
-                board.AggregateCommand(command, row, col);
+                board.ProcessCommand(command, row, col);
             }
             else
             {
@@ -32,8 +31,9 @@ public class Startup
                 continue;
             }
         }
+
         board.DetermineOutcome();
-        Delay(2000);
+        Delay(1000);
         Console.Clear();
         if (board.UserWon)
         {
@@ -41,7 +41,7 @@ public class Startup
         }
         else
         {
-            Console.WriteLine("Unlucky!");
+            Console.WriteLine("Unlucky! You lost.");
         }
     }
 
@@ -61,11 +61,11 @@ public class Startup
 
     private static void StartView()
     {
-        //Console.Clear();
-        //PrintGreeting();
-        //Delay(2000);
-        PrintControls();
+        Console.Clear();
+        PrintGreeting();
         Delay(2000);
+        PrintControls();
+        Delay(5000);
     }
 
     private static void PrintControls()

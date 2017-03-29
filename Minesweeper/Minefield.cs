@@ -147,7 +147,7 @@ public class Minefield
         }
     }
 
-    public void AggregateCommand(string command, int row, int col)
+    public void ProcessCommand(string command, int row, int col)
     {
         var currSquare = this.FieldLayout[row, col];
         if (command.Equals("open"))
