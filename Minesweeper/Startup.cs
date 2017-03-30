@@ -4,34 +4,21 @@ public class Startup
 {
     public static void Main(string[] args)
     {
-        Console.WriteLine("Enter field length, indexing not correct for numbers > 10:");
-        int fieldDimension = int.Parse(Console.ReadLine());
-        Console.WriteLine("Enter mine count:");
-        int mineCount = int.Parse(Console.ReadLine());
+        int fieldDimension = 9;
+        int mineCount = 10;
 
-        StartView();
+        //StartView();
 
         Minefield board = new Minefield(fieldDimension, mineCount);
         while (!board.GameFinished)
         {
             Console.Clear();
-            board.Preview(false); // should be false
+            board.Preview(true); // should be false
 
-            string[] userInput = Console.ReadLine().Split();
+            var userInput = Console.ReadKey(); 
 
-            bool validInput = ValidateInput(userInput);
-            if (validInput)
-            {
-                string command = userInput[0].Trim();
-                int row = int.Parse(userInput[1]);
-                int col = int.Parse(userInput[2]);
-                board.ProcessCommand(command, row, col);
-            }
-            else
-            {
-                Console.WriteLine("Please enter valid command.");
-                continue;
-            }
+            board.ProcessCommand(userInput);
+            
         }
 
         board.DetermineOutcome();
@@ -73,13 +60,16 @@ public class Startup
         Delay(5000);
     }
 
-    private static void PrintControls()
+    private static void PrintControls(bool help = false)
     {
         Console.WriteLine("Input syntax:");
         Delay(750);
         Console.WriteLine($"open {{row}} {{col}} {Environment.NewLine}flag {{row}} {{col}}");
         Delay(1500);
-        Console.WriteLine("Good Luck.");
+        if (!help)
+        {
+            Console.WriteLine("Good Luck.");
+        }
     }
 
     private static void PrintGreeting()

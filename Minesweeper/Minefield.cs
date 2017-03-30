@@ -9,6 +9,7 @@ public class Minefield
     public bool GameFinished { get; private set; }
     public int FieldsCovered { get; private set; }
     public bool UserWon { get; private set; }
+    public Position PointerPosition { get; private set; }
 
     public Minefield(int fieldLength, int mineCount)
     {
@@ -16,8 +17,9 @@ public class Minefield
         this.MineCount = mineCount;
         this.FieldLayout = GenerateLayout(this.FieldLength, this.MineCount);
         this.FieldsCovered = fieldLength * fieldLength; // bools are false by default
+        this.PointerPosition = new Position(0,0);
     }
-
+   
     private Square[,] GenerateLayout(int fieldLength, int mineCount)
     {
         Square[,] mineField = new Square[fieldLength, fieldLength];
@@ -78,6 +80,34 @@ public class Minefield
         }
     }
 
+    public void ProcessCommand(ConsoleKey key)
+    {
+        
+        //var currSquare = this.FieldLayout[row, col];
+        //if (command.Equals("open"))
+        //{
+        //    if (currSquare.IsMine)
+        //    {
+        //        this.GameFinished = true;
+        //    }
+        //    else
+        //    {
+        //        this.FieldLayout[row, col].IsHidden = false;
+        //        this.FieldsCovered--;
+        //        RecursiveUncover(currSquare);
+        //    }
+        //}
+        //else if (command.Equals("flag"))
+        //{
+        //    currSquare.IsFlagged ^= true; // change value
+        //}
+
+        //if (this.FieldsCovered == this.MineCount)
+        //{
+        //    this.GameFinished = true;
+        //}
+    }
+
     private void RecursiveUncover(Square currSquare)
     {
         if (currSquare.MinesNearby != 0)
@@ -121,11 +151,18 @@ public class Minefield
 
             for (int j = 2; j < lastIndex; j++)
             {
+                var realRow = i - 1;
+                var realCol = j - 2;
                 char currentChar = '-';
-                var currentSquare = this.FieldLayout[i - 1, j - 2];
+                var currentSquare = this.FieldLayout[realRow, realCol];
+                bool isPointer = this.PointerPosition.Row == realRow && this.PointerPosition.Column == realCol;
+                if (isPointer)
+                {
+                    currentChar = '+';
+                }
                 if ((showMines || this.UserWon) && currentSquare.IsMine)
                 {
-                    currentChar = '\u00B7';
+                    currentChar = '\u00B7';//middle dot
                 }
                 else if (!currentSquare.IsHidden)
                 {
@@ -143,36 +180,6 @@ public class Minefield
         foreach (char[] item in mineField)
         {
             Console.WriteLine(new string(item));
-        }
-    }
-
-    public void ProcessCommand(string command, int row, int col)
-    {
-        var currSquare = this.FieldLayout[row, col];
-        if (command.Equals("open"))
-        {
-            if (currSquare.IsMine)
-            {
-                this.GameFinished = true;
-            }
-            else if (currSquare.MinesNearby == 0)
-            {
-                RecursiveUncover(currSquare);
-            }
-            else // more than 1 mine nearby
-            {
-                this.FieldLayout[row, col].IsHidden = false;
-                this.FieldsCovered--;
-            }
-        }
-        else if (command.Equals("flag"))
-        {
-            currSquare.IsFlagged ^= true; // change value
-        }
-
-        if (this.FieldsCovered == this.MineCount)
-        {
-            this.GameFinished = true;
         }
     }
 
