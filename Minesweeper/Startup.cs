@@ -14,11 +14,11 @@ public class Startup
         {
             Console.Clear();
             board.Preview(true); // should be false
+            PrintControls();
 
             var userInput = Console.ReadKey(); 
 
             board.ProcessCommand(userInput);
-            
         }
 
         board.DetermineOutcome();
@@ -36,21 +36,7 @@ public class Startup
         }
         Console.WriteLine("Thanks for playing!");
     }
-
-    private static bool ValidateInput(string[] userInput)
-    {
-        if (userInput.Length != 3)
-        {
-            return false;
-        }
-
-        string command = userInput[0];
-        bool invalidCoords = !int.TryParse(userInput[1].Trim(), out int row) || !int.TryParse(userInput[2].Trim(), out int col);// returns true if success
-        bool validInput = (command.Equals("open") || command.Equals("flag")) ^ invalidCoords;
-
-        return validInput;
-    }
-
+    
     private static void StartView()
     {
         Console.Clear();
@@ -62,14 +48,10 @@ public class Startup
 
     private static void PrintControls(bool help = false)
     {
-        Console.WriteLine("Input syntax:");
-        Delay(750);
-        Console.WriteLine($"open {{row}} {{col}} {Environment.NewLine}flag {{row}} {{col}}");
-        Delay(1500);
-        if (!help)
-        {
-            Console.WriteLine("Good Luck.");
-        }
+        Console.WriteLine();
+        Console.WriteLine("Use arrows or WASD for moving the pointer.");
+        Console.WriteLine("Enter to open field.");
+        Console.WriteLine("Space to flag field.");
     }
 
     private static void PrintGreeting()

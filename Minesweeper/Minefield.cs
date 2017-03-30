@@ -9,7 +9,7 @@ public class Minefield
     public bool GameFinished { get; private set; }
     public int FieldsCovered { get; private set; }
     public bool UserWon { get; private set; }
-    public Position PointerPosition { get; private set; }
+    public Position Pointer { get; private set; }
 
     public Minefield(int fieldLength, int mineCount)
     {
@@ -17,9 +17,9 @@ public class Minefield
         this.MineCount = mineCount;
         this.FieldLayout = GenerateLayout(this.FieldLength, this.MineCount);
         this.FieldsCovered = fieldLength * fieldLength; // bools are false by default
-        this.PointerPosition = new Position(0,0);
+        this.Pointer = new Position(0, 0);
     }
-   
+
     private Square[,] GenerateLayout(int fieldLength, int mineCount)
     {
         Square[,] mineField = new Square[fieldLength, fieldLength];
@@ -80,32 +80,42 @@ public class Minefield
         }
     }
 
-    public void ProcessCommand(ConsoleKey key)
+    public void ProcessCommand(ConsoleKeyInfo key)
     {
-        
-        //var currSquare = this.FieldLayout[row, col];
-        //if (command.Equals("open"))
-        //{
-        //    if (currSquare.IsMine)
-        //    {
-        //        this.GameFinished = true;
-        //    }
-        //    else
-        //    {
-        //        this.FieldLayout[row, col].IsHidden = false;
-        //        this.FieldsCovered--;
-        //        RecursiveUncover(currSquare);
-        //    }
-        //}
-        //else if (command.Equals("flag"))
-        //{
-        //    currSquare.IsFlagged ^= true; // change value
-        //}
+        char direction = ' ';
+        if (key.KeyChar == 'w' || key.KeyChar == 'W' || key.Key == ConsoleKey.UpArrow) direction = 'w';
+        else if (key.KeyChar == 's' || key.KeyChar == 'S' || key.Key == ConsoleKey.DownArrow) direction = 's';
+        else if (key.KeyChar == 'a' || key.KeyChar == 'A' || key.Key == ConsoleKey.LeftArrow) direction = 'a';
+        else if (key.KeyChar == 'd' || key.KeyChar == 'D' || key.Key == ConsoleKey.RightArrow) direction = 'd';
 
-        //if (this.FieldsCovered == this.MineCount)
-        //{
-        //    this.GameFinished = true;
-        //}
+        if (direction != ' ') Pointer.Move(direction, this.FieldLength);
+
+        else if (key.Key == ConsoleKey.Enter || key.Key == ConsoleKey.Spacebar)
+        {
+            var currSquare = this.FieldLayout[Pointer.Row, Pointer.Column];
+            int row = this.Pointer.Row;
+            int col = this.Pointer.Column;
+            if (key.Key == ConsoleKey.Enter)
+            {
+                if (currSquare.IsMine)
+                {
+                    this.GameFinished = true;
+                }
+                else
+                {
+                    if (currSquare.IsHidden)
+                    {
+                        this.FieldLayout[row, col].IsHidden = false;
+                        this.FieldsCovered--;
+                        RecursiveUncover(currSquare);
+                    }
+                }
+            }
+            else
+            {
+                currSquare.IsFlagged ^= true; // change value
+            }
+        }
     }
 
     private void RecursiveUncover(Square currSquare)
@@ -125,11 +135,6 @@ public class Minefield
                 RecursiveUncover(nextSquare);
             }
         }
-    }
-
-    private bool IsMine(int row, int col)
-    {
-        return this.FieldLayout[row, col].IsMine;
     }
 
     public void Preview(bool showMines)
@@ -155,12 +160,12 @@ public class Minefield
                 var realCol = j - 2;
                 char currentChar = '-';
                 var currentSquare = this.FieldLayout[realRow, realCol];
-                bool isPointer = this.PointerPosition.Row == realRow && this.PointerPosition.Column == realCol;
+                bool isPointer = this.Pointer.Row == realRow && this.Pointer.Column == realCol;
                 if (isPointer)
                 {
                     currentChar = '+';
                 }
-                if ((showMines || this.UserWon) && currentSquare.IsMine)
+                else if ((showMines || this.UserWon) && currentSquare.IsMine)
                 {
                     currentChar = '\u00B7';//middle dot
                 }
