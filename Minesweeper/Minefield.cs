@@ -3,12 +3,12 @@ using System.Collections.Generic;
 
 public class Minefield
 {
-    public Square[,] FieldLayout { get; set; } // [col,row]
-    public int FieldLength { get; set; }
-    public int MineCount { get; set; }
-    public bool GameFinished { get; set; }
-    public int FieldsCovered { get; set; }
-    public bool UserWon { get; set; }
+    public Square[,] FieldLayout { get; } // [col,row]
+    public int FieldLength { get; }
+    public int MineCount { get; }
+    public bool GameFinished { get; private set; }
+    public int FieldsCovered { get; private set; }
+    public bool UserWon { get; private set; }
 
     public Minefield(int fieldLength, int mineCount)
     {
@@ -52,23 +52,22 @@ public class Minefield
         int rows = fieldLength;
         int totalPositions = rows * rows;
         Position[] minePositions = new Position[mineCount];
-        for (int i = 0; i < rows && minesPositioned != mineCount; i++)
+        HashSet<KeyValuePair<int, int>> positionsAdded = new HashSet<KeyValuePair<int, int>>();
+        while (minesPositioned != mineCount)
         {
-            for (int j = 0; j < rows && minesPositioned != mineCount; j++)
+            int randomRow = r.Next(0, fieldLength);
+            int randomCol = r.Next(0, fieldLength);
+            var pair = new KeyValuePair<int, int>(randomRow, randomCol);
+            if (!positionsAdded.Contains(pair))
             {
-                int positionsLeft = totalPositions - (i * rows + j);
-                double percentageForPlacement = (mineCount - minesPositioned) * 100.0 / positionsLeft;
-                if (r.Next(0, positionsLeft) < percentageForPlacement)
-                {
-                    Position currentPos = new Position(i, j);
-                    minePositions[minesPositioned] = currentPos;
-                    minesPositioned++;
-                }
+                minePositions[minesPositioned] = new Position(randomRow, randomCol);
+                positionsAdded.Add(pair);
+                minesPositioned++;
             }
         }
 
         return minePositions;
-    } // needs improvement, last lines rarely get mines
+    }
 
     private void AddBombToAdjacent(Square[,] mineField, int row, int col)
     {
@@ -103,7 +102,7 @@ public class Minefield
         return this.FieldLayout[row, col].IsMine;
     }
 
-    public void Preview(bool showMines = false)
+    public void Preview(bool showMines)
     {
         int sideLength = this.FieldLength;
         int lastIndex = sideLength + 2;
@@ -124,9 +123,9 @@ public class Minefield
             {
                 char currentChar = '-';
                 var currentSquare = this.FieldLayout[i - 1, j - 2];
-                if (showMines && currentSquare.IsMine)
+                if ((showMines || this.UserWon) && currentSquare.IsMine)
                 {
-                    currentChar = 'o';
+                    currentChar = '\u00B7';
                 }
                 else if (!currentSquare.IsHidden)
                 {
@@ -181,5 +180,4 @@ public class Minefield
     {
         this.UserWon = FieldsCovered == MineCount;
     }
-    
 }

@@ -4,8 +4,10 @@ public class Startup
 {
     public static void Main(string[] args)
     {
-        const int fieldDimension = 5;
-        const int mineCount = 5;
+        Console.WriteLine("Enter field length, indexing not correct for numbers > 10:");
+        int fieldDimension = int.Parse(Console.ReadLine());
+        Console.WriteLine("Enter mine count:");
+        int mineCount = int.Parse(Console.ReadLine());
 
         StartView();
 
@@ -35,14 +37,17 @@ public class Startup
         board.DetermineOutcome();
         Delay(1000);
         Console.Clear();
+        board.Preview(true);
+        Console.WriteLine();
         if (board.UserWon)
         {
-            Console.WriteLine("Congratulations! Thanks for playing.");
+            Console.WriteLine("Congratulations! You won.");
         }
         else
         {
             Console.WriteLine("Unlucky! You lost.");
         }
+        Console.WriteLine("Thanks for playing!");
     }
 
     private static bool ValidateInput(string[] userInput)
@@ -81,7 +86,7 @@ public class Startup
     {
         Console.WriteLine("Welcome to Minesweeper.");
     }
-    
+
     private static void Delay(int millis)
     {
         System.Threading.Thread.Sleep(millis);
