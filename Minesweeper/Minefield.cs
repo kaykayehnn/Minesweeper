@@ -6,7 +6,7 @@ public class Minefield
     public Square[,] FieldLayout { get; } // [col,row]
     public int FieldLength { get; }
     public int MineCount { get; }
-    public bool GameFinished { get; private set; }
+    public bool PlayerLost { get; private set; }
     public int FieldsCovered { get; private set; }
     public bool UserWon { get; private set; }
     public Position Pointer { get; private set; }
@@ -99,7 +99,7 @@ public class Minefield
             {
                 if (currSquare.IsMine)
                 {
-                    this.GameFinished = true;
+                    this.PlayerLost = true;
                 }
                 else
                 {
@@ -140,38 +140,30 @@ public class Minefield
     public void Preview(bool showMines)
     {
         int sideLength = this.FieldLength;
-        int lastIndex = sideLength + 2;
-        char[][] mineField = new char[sideLength + 1][];//one more line for indexing at top
-        mineField[0] = new char[lastIndex];
-        for (int i = 2; i < lastIndex; i++)// indexing at top, starts at two because of side indexing
-        {
-            mineField[0][i] = (char)(i + 46);
-        }
+        char[][] mineField = new char[sideLength][];//one more line for indexing at top
+        mineField[0] = new char[sideLength];
 
-        for (int i = 1; i < sideLength + 1; i++)
+        for (int i = 0; i < sideLength; i++)
         {
-            mineField[i] = new char[lastIndex];
-            mineField[i][0] = (char)(i + 47);//indexing on the left
-            mineField[i][1] = ' ';
+            mineField[i] = new char[sideLength];
 
-            for (int j = 2; j < lastIndex; j++)
+            for (int j = 0; j < sideLength; j++)
             {
-                var realRow = i - 1;
-                var realCol = j - 2;
                 char currentChar = '-';
-                var currentSquare = this.FieldLayout[realRow, realCol];
-                bool isPointer = this.Pointer.Row == realRow && this.Pointer.Column == realCol;
-                if (isPointer)
-                {
-                    currentChar = '+';
-                }
-                else if ((showMines || this.UserWon) && currentSquare.IsMine)
+                var currentSquare = this.FieldLayout[i, j];
+                bool isPointer = this.Pointer.Row == i && this.Pointer.Column == j;
+                if ((showMines || this.UserWon) && currentSquare.IsMine)
                 {
                     currentChar = '\u00B7';//middle dot
                 }
+                else if (isPointer)
+                {
+                    currentChar = '\u25AF';
+                }
+
                 else if (!currentSquare.IsHidden)
                 {
-                    currentChar = (char)(currentSquare.MinesNearby + 48); // to ascii number
+                    currentChar = (char)(currentSquare.MinesNearby + '0'); // to ascii number
                 }
                 else if (currentSquare.IsFlagged)
                 {
@@ -188,8 +180,8 @@ public class Minefield
         }
     }
 
-    public void DetermineOutcome()
+    public bool PlayerWon()
     {
-        this.UserWon = FieldsCovered == MineCount;
+        return this.MineCount == this.FieldsCovered;
     }
 }

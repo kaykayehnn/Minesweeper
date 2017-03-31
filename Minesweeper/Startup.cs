@@ -7,21 +7,20 @@ public class Startup
         int fieldDimension = 9;
         int mineCount = 10;
 
-        //StartView();
+        StartView();
 
         Minefield board = new Minefield(fieldDimension, mineCount);
-        while (!board.GameFinished)
+        while (board.PlayerWon() == board.PlayerLost)
         {
             Console.Clear();
-            board.Preview(true); // should be false
+            board.Preview(false); // should be false
             PrintControls();
 
-            var userInput = Console.ReadKey(); 
+            var userInput = Console.ReadKey();
 
             board.ProcessCommand(userInput);
         }
-
-        board.DetermineOutcome();
+        
         Delay(1000);
         Console.Clear();
         board.Preview(true);
@@ -34,19 +33,21 @@ public class Startup
         {
             Console.WriteLine("Unlucky! You lost.");
         }
+
         Console.WriteLine("Thanks for playing!");
+        Delay(5000);
+        Console.WriteLine("Press any key to leave.");
+        Console.ReadKey();
     }
-    
+
     private static void StartView()
     {
         Console.Clear();
         PrintGreeting();
         Delay(2000);
-        PrintControls();
-        Delay(5000);
     }
 
-    private static void PrintControls(bool help = false)
+    private static void PrintControls()
     {
         Console.WriteLine();
         Console.WriteLine("Use arrows or WASD for moving the pointer.");
@@ -57,6 +58,8 @@ public class Startup
     private static void PrintGreeting()
     {
         Console.WriteLine("Welcome to Minesweeper.");
+        Delay(1500);
+        Console.WriteLine("Good luck.");
     }
 
     private static void Delay(int millis)
