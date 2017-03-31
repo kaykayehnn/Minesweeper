@@ -8,42 +8,52 @@ public class Startup
         int mineCount = 10;
 
         StartView();
-
-        Minefield board = new Minefield(fieldDimension, mineCount);
-        while (board.PlayerWon == board.PlayerLost)
+        Console.CursorVisible = false;
+        bool playerIsAddicted = true;
+        while (playerIsAddicted)
         {
+            Minefield board = new Minefield(fieldDimension, mineCount);
+            while (board.PlayerWon == board.PlayerLost)
+            {
+                Console.Clear();
+                board.Preview(); // should be false
+                PrintControls();
+
+                Console.SetCursorPosition(11, 8);//left bottom corner of board coords at 9x9
+                Console.Write($"Flags left: {mineCount - board.FlagCounter}");
+
+                var userInput = Console.ReadKey();
+
+                board.ProcessCommand(userInput);
+
+                board.UpdateGameState();
+            }
+            Delay(1000);
             Console.Clear();
-            board.Preview(); // should be false
-            PrintControls();
-            Console.SetCursorPosition(11, 8);//left bottom corner of board coords at 9x9
-            Console.Write($"Flags left: {mineCount - board.FlagCounter}");
-            var userInput = Console.ReadKey();
+            board.Preview();
+            Console.WriteLine();
+            if (board.PlayerWon)
+            {
+                Console.WriteLine("Congratulations! You won.");
+            }
+            else
+            {
+                Console.WriteLine("Unlucky! You lost.");
+            }
 
-            board.ProcessCommand(userInput);
+            Console.WriteLine("\nTry again?");
 
-            board.UpdateGameState();
-        }
-        
-        Delay(1000);
-        Console.Clear();
-        board.Preview();
-        Console.WriteLine();
-        if (board.PlayerWon)
-        {
-            Console.WriteLine("Congratulations! You won.");
-        }
-        else
-        {
-            Console.WriteLine("Unlucky! You lost.");
+            char input = (char)Console.Read();
+            playerIsAddicted = input == 'y' || input == 'Y' /* || true */;
         }
 
         Console.WriteLine("Thanks for playing!");
+        Delay(1000);
         for (int i = 5; i > 0; i--)
         {
-            Console.Write($"\rPress any key to leave in {i}");
+            Console.Write($"\rLeaving in {i}");
             Delay(1000);
         }
-        Console.ReadKey();
     }
 
     private static void StartView()
