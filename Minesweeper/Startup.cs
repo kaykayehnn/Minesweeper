@@ -2,7 +2,7 @@
 
 public class Startup
 {
-    public static void Main(string[] args)
+    public static void Main()
     {
         int fieldDimension = 9;
         int mineCount = 10;
@@ -10,22 +10,25 @@ public class Startup
         StartView();
 
         Minefield board = new Minefield(fieldDimension, mineCount);
-        while (board.PlayerWon() == board.PlayerLost)
+        while (board.PlayerWon == board.PlayerLost)
         {
             Console.Clear();
-            board.Preview(false); // should be false
+            board.Preview(); // should be false
             PrintControls();
-
+            Console.SetCursorPosition(11, 8);//left bottom corner of board coords at 9x9
+            Console.Write($"Flags left: {mineCount - board.FlagCounter}");
             var userInput = Console.ReadKey();
 
             board.ProcessCommand(userInput);
+
+            board.UpdateGameState();
         }
         
         Delay(1000);
         Console.Clear();
-        board.Preview(true);
+        board.Preview();
         Console.WriteLine();
-        if (board.UserWon)
+        if (board.PlayerWon)
         {
             Console.WriteLine("Congratulations! You won.");
         }
@@ -35,8 +38,11 @@ public class Startup
         }
 
         Console.WriteLine("Thanks for playing!");
-        Delay(5000);
-        Console.WriteLine("Press any key to leave.");
+        for (int i = 5; i > 0; i--)
+        {
+            Console.Write($"\rPress any key to leave in {i}");
+            Delay(1000);
+        }
         Console.ReadKey();
     }
 

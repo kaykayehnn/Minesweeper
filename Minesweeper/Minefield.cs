@@ -8,8 +8,9 @@ public class Minefield
     public int MineCount { get; }
     public bool PlayerLost { get; private set; }
     public int FieldsCovered { get; private set; }
-    public bool UserWon { get; private set; }
+    public bool PlayerWon { get; private set; }
     public Position Pointer { get; private set; }
+    public int FlagCounter { get; private set; }
 
     public Minefield(int fieldLength, int mineCount)
     {
@@ -105,17 +106,37 @@ public class Minefield
                 {
                     if (currSquare.IsHidden)
                     {
+                        if (currSquare.IsFlagged)
+                        {
+                            this.ChangeFlagState(currSquare);
+                        }
                         this.FieldLayout[row, col].IsHidden = false;
                         this.FieldsCovered--;
                         RecursiveUncover(currSquare);
                     }
                 }
             }
-            else
+            else // flag command
             {
-                currSquare.IsFlagged ^= true; // change value
+                if (currSquare.IsHidden)
+                {
+                    this.ChangeFlagState(currSquare);
+                }
             }
         }
+    }
+
+    private void ChangeFlagState(Square currSquare)
+    {
+        if (currSquare.IsFlagged)
+        {
+            this.FlagCounter--;
+        }
+        else
+        {
+            this.FlagCounter++;
+        }
+        currSquare.IsFlagged ^= true; // change value
     }
 
     private void RecursiveUncover(Square currSquare)
@@ -130,6 +151,10 @@ public class Minefield
             var nextSquare = this.FieldLayout[position.Row, position.Column];
             if (nextSquare.IsHidden == true)// to prevent stack overflow
             {
+                if (nextSquare.IsFlagged)
+                {
+                    this.ChangeFlagState(nextSquare);
+                }
                 nextSquare.IsHidden = false;
                 this.FieldsCovered--;
                 RecursiveUncover(nextSquare);
@@ -137,31 +162,33 @@ public class Minefield
         }
     }
 
-    public void Preview(bool showMines)
+    public void UpdateGameState()
+    {
+        this.PlayerWon = this.MineCount == this.FieldsCovered;
+    }
+
+    public void Preview()
     {
         int sideLength = this.FieldLength;
-        char[][] mineField = new char[sideLength][];//one more line for indexing at top
-        mineField[0] = new char[sideLength];
 
         for (int i = 0; i < sideLength; i++)
         {
-            mineField[i] = new char[sideLength];
-
             for (int j = 0; j < sideLength; j++)
             {
                 char currentChar = '-';
                 var currentSquare = this.FieldLayout[i, j];
                 bool isPointer = this.Pointer.Row == i && this.Pointer.Column == j;
-                if ((showMines || this.UserWon) && currentSquare.IsMine)
+                bool gameFinished = this.PlayerLost || this.PlayerWon;
+                var currentColor = Console.ForegroundColor;
+                if (isPointer && !gameFinished)
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                }
+                if ((this.PlayerLost || this.PlayerWon) && currentSquare.IsMine)
                 {
                     currentChar = '\u00B7';//middle dot
                 }
-                else if (isPointer)
-                {
-                    currentChar = '\u25AF';
-                }
-
-                else if (!currentSquare.IsHidden)
+                else if (!currentSquare.IsHidden || this.PlayerLost)
                 {
                     currentChar = (char)(currentSquare.MinesNearby + '0'); // to ascii number
                 }
@@ -170,18 +197,13 @@ public class Minefield
                     currentChar = 'f';
                 }
 
-                mineField[i][j] = currentChar;
+                Console.Write(currentChar);
+                if (isPointer)
+                {
+                    Console.ForegroundColor = currentColor;
+                }
             }
+            Console.Write('\n');
         }
-
-        foreach (char[] item in mineField)
-        {
-            Console.WriteLine(new string(item));
-        }
-    }
-
-    public bool PlayerWon()
-    {
-        return this.MineCount == this.FieldsCovered;
     }
 }
