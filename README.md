@@ -1,2 +1,2 @@
-# Minesweeper-1
+# Minesweeper
 Minesweeper console game.
