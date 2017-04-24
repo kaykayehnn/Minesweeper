@@ -11,6 +11,7 @@ public class Minefield
     public bool PlayerWon { get; private set; }
     public Position Pointer { get; private set; }
     public int FlagCounter { get; private set; }
+    public bool NeedsUpdate { get; set; }
 
     public Minefield(int fieldLength, int mineCount)
     {
@@ -19,6 +20,7 @@ public class Minefield
         this.FieldLayout = GenerateLayout(this.FieldLength, this.MineCount);
         this.FieldsCovered = fieldLength * fieldLength; // bools are false by default
         this.Pointer = new Position(0, 0);
+        this.NeedsUpdate = true;
     }
 
     private Square[,] GenerateLayout(int fieldLength, int mineCount)
@@ -89,8 +91,11 @@ public class Minefield
         else if (key.KeyChar == 'a' || key.KeyChar == 'A' || key.Key == ConsoleKey.LeftArrow) direction = 'a';
         else if (key.KeyChar == 'd' || key.KeyChar == 'D' || key.Key == ConsoleKey.RightArrow) direction = 'd';
 
-        if (direction != ' ') Pointer.Move(direction, this.FieldLength);
-
+        if (direction != ' ')
+        {
+            Pointer.Move(direction, this.FieldLength);
+            this.NeedsUpdate = Pointer.HasChanged;
+        }
         else if (key.Key == ConsoleKey.Enter || key.Key == ConsoleKey.Spacebar)
         {
             var currSquare = this.FieldLayout[Pointer.Row, Pointer.Column];
@@ -167,10 +172,10 @@ public class Minefield
         this.PlayerWon = this.MineCount == this.FieldsCovered;
     }
 
-    public void Preview()
+    public void Preview(bool blink = false)
     {
         int sideLength = this.FieldLength;
-
+        //var colours = AllColours();
         for (int i = 0; i < sideLength; i++)
         {
             for (int j = 0; j < sideLength; j++)
@@ -179,17 +184,21 @@ public class Minefield
                 var currentSquare = this.FieldLayout[i, j];
                 bool isPointer = this.Pointer.Row == i && this.Pointer.Column == j;
                 bool gameFinished = this.PlayerLost || this.PlayerWon;
-                var currentColor = Console.ForegroundColor;
-                if (isPointer && !gameFinished)
-                {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                }
+
                 if ((this.PlayerLost || this.PlayerWon) && currentSquare.IsMine)
                 {
                     currentChar = '\u00B7';//middle dot
                 }
+                else if (isPointer && blink)
+                {
+                    currentChar = '\u00A6';
+                }
                 else if (!currentSquare.IsHidden || this.PlayerLost)
                 {
+                    //if (currentSquare.MinesNearby != 0)
+                    //{
+                    //    Console.ForegroundColor = colours[currentSquare.MinesNearby - 1];
+                    //}
                     currentChar = (char)(currentSquare.MinesNearby + '0'); // to ascii number
                 }
                 else if (currentSquare.IsFlagged)
@@ -198,12 +207,34 @@ public class Minefield
                 }
 
                 Console.Write(currentChar);
-                if (isPointer)
-                {
-                    Console.ForegroundColor = currentColor;
-                }
+                //Console.ForegroundColor = ConsoleColor.White;
             }
             Console.Write('\n');
         }
+    }
+
+    private ConsoleColor[] AllColours()
+    {
+        ConsoleColor[] colors = new ConsoleColor[7];
+        colors[0] = ConsoleColor.Blue;
+        colors[1] = ConsoleColor.Green;
+        colors[2] = ConsoleColor.Red;
+        colors[3] = ConsoleColor.DarkBlue;
+        colors[4] = ConsoleColor.DarkRed;
+        colors[5] = ConsoleColor.DarkCyan;
+        colors[6] = ConsoleColor.DarkGreen;
+        return colors;
+    }
+
+    public void Blink(bool wholeSecond)
+    {
+        Console.Clear();
+        this.Preview(wholeSecond);
+
+    }
+
+    public void PrintFlags()
+    {
+        Console.Write($"Flags left: {this.MineCount - this.FlagCounter}");
     }
 }
