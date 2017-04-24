@@ -228,9 +228,7 @@ public class Minefield
 
     public void Blink(bool wholeSecond)
     {
-        Console.Clear();
         this.Preview(wholeSecond);
-
     }
 
     public void PrintFlags()

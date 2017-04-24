@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 
 public class Startup
@@ -28,19 +29,15 @@ public class Startup
                     Console.Write(" ");
                 }
 
-                Console.SetCursorPosition(30,8);
+                Console.SetCursorPosition(30, 8);
                 Task<ConsoleKeyInfo> readCommand = Task.Run(() => ReadUserInput());
-                int timePassed = 0;
+                Stopwatch timePassed = Stopwatch.StartNew();
                 while (!readCommand.IsCompleted)
                 {
-                    timePassed += 1;
-                    Delay(1);
-                    if (timePassed % 500 == 0)
+                    if (timePassed.ElapsedMilliseconds % 500 == 0)
                     {
-                        Console.Clear();
-                        board.Blink(timePassed % 1000 == 0);
-                        PrintControls();
-                        board.PrintFlags();
+                        Console.SetCursorPosition(0, 0);
+                        board.Blink(timePassed.ElapsedMilliseconds % 1000 == 0);
                     }
                 }
                 var userInput = readCommand.Result;
