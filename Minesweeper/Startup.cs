@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
-using System.Threading.Tasks;
 
 public class Startup
 {
@@ -17,31 +15,15 @@ public class Startup
             Minefield board = new Minefield(fieldDimension, mineCount);
             while (board.PlayerWon == board.PlayerLost)
             {
-                if (board.NeedsUpdate)
-                {
-                    Console.Clear();
-                    board.Preview(true); // show cursor after move
-                    PrintControls();
-                    board.PrintFlags();
-                }
-                else
-                {
-                    Console.Write(" ");
-                }
+                Console.Clear();
+                board.Preview(); // should be false
+                PrintControls();
 
-                Console.SetCursorPosition(30, 8);
-                Task<ConsoleKeyInfo> readCommand = Task.Run(() => ReadUserInput());
-                Stopwatch timePassed = Stopwatch.StartNew();
-                while (!readCommand.IsCompleted)
-                {
-                    if (timePassed.ElapsedMilliseconds % 500 == 0)
-                    {
-                        Console.SetCursorPosition(0, 0);
-                        board.Blink(timePassed.ElapsedMilliseconds % 1000 == 0);
-                    }
-                }
-                var userInput = readCommand.Result;
-                ClearUserInput(board.MineCount);
+                Console.SetCursorPosition(11, 8);//left bottom corner of board coords at 9x9
+                Console.Write($"Flags left: {mineCount - board.FlagCounter}");
+
+                var userInput = Console.ReadKey();
+
                 board.ProcessCommand(userInput);
 
                 board.UpdateGameState();
@@ -67,22 +49,11 @@ public class Startup
 
         Console.WriteLine("Thanks for playing!");
         Delay(1000);
-        for (int i = 5; i > 0; i--)
+        for (int i = 3; i > 0; i--)
         {
             Console.Write($"\rLeaving in {i}");
             Delay(1000);
         }
-    }
-
-    private static void ClearUserInput(int mineCount)
-    {
-        Console.SetCursorPosition(30, 8);
-        Console.Write(" ");
-    }
-
-    private static ConsoleKeyInfo ReadUserInput()
-    {
-        return Console.ReadKey();
     }
 
     private static void StartView()
@@ -98,7 +69,6 @@ public class Startup
         Console.WriteLine("Use arrows or WASD for moving the pointer.");
         Console.WriteLine("Enter to open field.");
         Console.WriteLine("Space to flag field.");
-        Console.SetCursorPosition(11, 8);//left bottom corner of board coords at 9x9
     }
 
     private static void PrintGreeting()

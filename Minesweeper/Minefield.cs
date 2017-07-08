@@ -159,7 +159,7 @@ public class Minefield
         this.PlayerWon = this.fieldsCovered == this.mineCount;
     }
 
-    public void Preview(bool blink = false)
+    public void Preview()
     {
         int sideLength = this.fieldLength;
 
@@ -171,21 +171,17 @@ public class Minefield
                 var currentSquare = this.fieldLayout[i, j];
                 bool isPointer = this.position.Row == i && this.position.Column == j;
                 bool gameFinished = this.PlayerLost || this.PlayerWon;
-
+                var currentColor = Console.ForegroundColor;
+                if (isPointer && !gameFinished)
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                }
                 if ((this.PlayerLost || this.PlayerWon) && currentSquare.IsMine)
                 {
                     currentChar = '\u00B7';//middle dot
                 }
-                else if (isPointer && blink)
-                {
-                    currentChar = '\u00A6';
-                }
                 else if (!currentSquare.IsHidden || this.PlayerLost)
                 {
-                    //if (currentSquare.MinesNearby != 0)
-                    //{
-                    //    Console.ForegroundColor = colours[currentSquare.MinesNearby - 1];
-                    //}
                     currentChar = (char)(currentSquare.MinesNearby + '0'); // to ascii number
                 }
                 else if (currentSquare.IsFlagged)
@@ -194,32 +190,12 @@ public class Minefield
                 }
 
                 Console.Write(currentChar);
-                //Console.ForegroundColor = ConsoleColor.White;
+                if (isPointer)
+                {
+                    Console.ForegroundColor = currentColor;
+                }
             }
             Console.Write('\n');
         }
-    }
-
-    private ConsoleColor[] AllColours()
-    {
-        ConsoleColor[] colors = new ConsoleColor[7];
-        colors[0] = ConsoleColor.Blue;
-        colors[1] = ConsoleColor.Green;
-        colors[2] = ConsoleColor.Red;
-        colors[3] = ConsoleColor.DarkBlue;
-        colors[4] = ConsoleColor.DarkRed;
-        colors[5] = ConsoleColor.DarkCyan;
-        colors[6] = ConsoleColor.DarkGreen;
-        return colors;
-    }
-
-    public void Blink(bool wholeSecond)
-    {
-        this.Preview(wholeSecond);
-    }
-
-    public void PrintFlags()
-    {
-        Console.Write($"Flags left: {this.MineCount - this.FlagCounter}");
     }
 }

@@ -16,7 +16,7 @@ public class Square
     public int MinesNearby { get; set; }
     public Position[] AdjacentPositions { get; set; }
     public bool IsFlagged { get; set; }
-    
+
     private Position[] GetAdjacentPositions(int row, int col)
     {
         Position[] adjecentPos = new Position[8] {
