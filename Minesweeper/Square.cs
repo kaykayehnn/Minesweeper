@@ -2,12 +2,6 @@
 
 public class Square
 {
-    public bool IsMine { get; set; }
-    public bool IsHidden { get; set; }
-    public int MinesNearby { get; set; }
-    public Position[] AdjacentPositions { get; set; }
-    public bool IsFlagged { get; set; }
-
     public Square(int row, int col, bool isBomb)
     {
         this.IsMine = isBomb;
@@ -17,6 +11,12 @@ public class Square
         this.IsFlagged = false;
     }
 
+    public bool IsMine { get; set; }
+    public bool IsHidden { get; set; }
+    public int MinesNearby { get; set; }
+    public Position[] AdjacentPositions { get; set; }
+    public bool IsFlagged { get; set; }
+    
     private Position[] GetAdjacentPositions(int row, int col)
     {
         Position[] adjecentPos = new Position[8] {

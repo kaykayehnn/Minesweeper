@@ -3,31 +3,30 @@ using System.Collections.Generic;
 
 public class Minefield
 {
-    public Square[,] FieldLayout { get; } // [col,row]
-    public int FieldLength { get; }
-    public int MineCount { get; }
-    public bool PlayerLost { get; private set; }
-    public int FieldsCovered { get; private set; }
-    public bool PlayerWon { get; private set; }
-    public Position Pointer { get; private set; }
-    public int FlagCounter { get; private set; }
-    public bool NeedsUpdate { get; set; }
+    private readonly Square[,] fieldLayout; // [col,row]
+    private readonly int fieldLength;
+    private readonly int mineCount;
+    private readonly Position position;
+    private int fieldsCovered;
 
     public Minefield(int fieldLength, int mineCount)
     {
-        this.FieldLength = fieldLength;
-        this.MineCount = mineCount;
-        this.FieldLayout = GenerateLayout(this.FieldLength, this.MineCount);
-        this.FieldsCovered = fieldLength * fieldLength; // bools are false by default
-        this.Pointer = new Position(0, 0);
-        this.NeedsUpdate = true;
+        this.fieldLength = fieldLength;
+        this.mineCount = mineCount;
+        this.fieldLayout = GenerateLayout();
+        this.fieldsCovered = fieldLength * fieldLength;
+        this.position = new Position(0, 0);
     }
 
-    private Square[,] GenerateLayout(int fieldLength, int mineCount)
+    public bool PlayerLost { get; private set; }
+    public bool PlayerWon { get; private set; }
+    public int FlagCounter { get; private set; }
+
+    private Square[,] GenerateLayout()
     {
-        Square[,] mineField = new Square[fieldLength, fieldLength];
-        Position[] minePositions = RandomiseMinePositions(fieldLength, mineCount);
-        for (int i = 0; i < fieldLength; i++)
+        Square[,] mineField = new Square[this.fieldLength, this.fieldLength];
+        var minePositions = RandomiseMinePositions();
+        for (int i = 0; i < this.fieldLength; i++)
         {
             for (int j = 0; j < fieldLength; j++)
             {
@@ -37,7 +36,6 @@ public class Minefield
 
         foreach (var sqr in mineField)
         {
-            var positions = sqr.AdjacentPositions;
             sqr.AdjacentPositions = sqr.RemoveInvalidPositions(fieldLength);
         }
 
@@ -50,28 +48,20 @@ public class Minefield
         return mineField;
     }
 
-    private Position[] RandomiseMinePositions(int fieldLength, int mineCount)
+    private IEnumerable<Position> RandomiseMinePositions()
     {
         Random r = new Random();
-        int minesPositioned = 0;
-        int rows = fieldLength;
-        int totalPositions = rows * rows;
-        Position[] minePositions = new Position[mineCount];
-        HashSet<KeyValuePair<int, int>> positionsAdded = new HashSet<KeyValuePair<int, int>>();
-        while (minesPositioned != mineCount)
+
+        HashSet<Position> positionsAdded = new HashSet<Position>();
+        while (positionsAdded.Count != this.mineCount)
         {
-            int randomRow = r.Next(0, fieldLength);
-            int randomCol = r.Next(0, fieldLength);
-            var pair = new KeyValuePair<int, int>(randomRow, randomCol);
-            if (!positionsAdded.Contains(pair))
-            {
-                minePositions[minesPositioned] = new Position(randomRow, randomCol);
-                positionsAdded.Add(pair);
-                minesPositioned++;
-            }
+            int randomRow = r.Next(0, this.fieldLength);
+            int randomCol = r.Next(0, this.fieldLength);
+
+            positionsAdded.Add(new Position(randomRow, randomCol));
         }
 
-        return minePositions;
+        return positionsAdded;
     }
 
     private void AddBombToAdjacent(Square[,] mineField, int row, int col)
@@ -91,16 +81,13 @@ public class Minefield
         else if (key.KeyChar == 'a' || key.KeyChar == 'A' || key.Key == ConsoleKey.LeftArrow) direction = 'a';
         else if (key.KeyChar == 'd' || key.KeyChar == 'D' || key.Key == ConsoleKey.RightArrow) direction = 'd';
 
-        if (direction != ' ')
-        {
-            Pointer.Move(direction, this.FieldLength);
-            this.NeedsUpdate = Pointer.HasChanged;
-        }
+        if (direction != ' ') this.position.Move(direction, this.fieldLength);
+
         else if (key.Key == ConsoleKey.Enter || key.Key == ConsoleKey.Spacebar)
         {
-            var currSquare = this.FieldLayout[Pointer.Row, Pointer.Column];
-            int row = this.Pointer.Row;
-            int col = this.Pointer.Column;
+            var currSquare = this.fieldLayout[this.position.Row, this.position.Column];
+            int row = this.position.Row;
+            int col = this.position.Column;
             if (key.Key == ConsoleKey.Enter)
             {
                 if (currSquare.IsMine)
@@ -115,8 +102,8 @@ public class Minefield
                         {
                             this.ChangeFlagState(currSquare);
                         }
-                        this.FieldLayout[row, col].IsHidden = false;
-                        this.FieldsCovered--;
+                        this.fieldLayout[row, col].IsHidden = false;
+                        this.fieldsCovered--;
                         RecursiveUncover(currSquare);
                     }
                 }
@@ -153,7 +140,7 @@ public class Minefield
         var positions = currSquare.AdjacentPositions;
         foreach (var position in positions)
         {
-            var nextSquare = this.FieldLayout[position.Row, position.Column];
+            var nextSquare = this.fieldLayout[position.Row, position.Column];
             if (nextSquare.IsHidden == true)// to prevent stack overflow
             {
                 if (nextSquare.IsFlagged)
@@ -161,7 +148,7 @@ public class Minefield
                     this.ChangeFlagState(nextSquare);
                 }
                 nextSquare.IsHidden = false;
-                this.FieldsCovered--;
+                this.fieldsCovered--;
                 RecursiveUncover(nextSquare);
             }
         }
@@ -169,20 +156,20 @@ public class Minefield
 
     public void UpdateGameState()
     {
-        this.PlayerWon = this.MineCount == this.FieldsCovered;
+        this.PlayerWon = this.fieldsCovered == this.mineCount;
     }
 
     public void Preview(bool blink = false)
     {
-        int sideLength = this.FieldLength;
-        //var colours = AllColours();
+        int sideLength = this.fieldLength;
+
         for (int i = 0; i < sideLength; i++)
         {
             for (int j = 0; j < sideLength; j++)
             {
                 char currentChar = '-';
-                var currentSquare = this.FieldLayout[i, j];
-                bool isPointer = this.Pointer.Row == i && this.Pointer.Column == j;
+                var currentSquare = this.fieldLayout[i, j];
+                bool isPointer = this.position.Row == i && this.position.Column == j;
                 bool gameFinished = this.PlayerLost || this.PlayerWon;
 
                 if ((this.PlayerLost || this.PlayerWon) && currentSquare.IsMine)

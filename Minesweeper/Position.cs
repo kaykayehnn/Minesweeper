@@ -1,14 +1,14 @@
 ﻿public class Position
 {
-    public int Row { get; set; }
-    public int Column { get; set; }
-    public bool HasChanged { get; set; }
     public Position(int row, int col)
     {
         this.Row = row;
         this.Column = col;
         this.HasChanged = true;
     }
+
+    public int Row { get; private set; }
+    public int Column { get; private set; }
 
     public bool IsValid(int fieldLength)
     {
@@ -50,8 +50,14 @@
                     this.HasChanged = true;
                 }
                 break;
-            default:
-                break;
         }
+    }
+
+    public override int GetHashCode()
+    {
+        int hash = 17;
+        hash = hash * 17 + this.Row;
+        hash = hash * 17 + this.Column;
+        return hash;
     }
 }
